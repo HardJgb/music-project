@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace等于mapper接口类的全限定名(带包名的路径) -->
+<mapper namespace="org.example.mapper.OrderMapper">
+    <!--
+       <resuleMap   手动映射标签
+          id 唯一标识
+          type 查询返回值类型
+          <id  银蛇逐渐
+          <result 映射普通列
+          column 表的列名
+          property 类的属性名
+    -->
+    <resultMap id="selectByIdResultMap" type="org.example.pojo.Order">
+        <id column="order_id" property="orderId"></id>
+        <result column="order_status" property="orderStatus"></result>
+        <result column="order_price" property="orderPrice"></result>
+        <result column="order_date" property="orderDate"></result>
+        <result column="order_desc" property="orderDesc"></result>
+        <result column="customer_id" property="customerId"></result>
+        <association property="customer" javaType="org.example.pojo.Customer">
+            <id column="customer_id" property="customerId"></id>
+            <result column="customer_name" property="customerName"></result>
+            <result column="customer_phone" property="customerPhone"></result>
+            <result column="customer_address" property="customerAddress"></result>
+            <result column="customer_contact" property="customerContact"></result>
+            <result column="customer_other" property="customerOther"></result>
+
+        </association>
+    </resultMap>
+    <select id="selectById" resultMap="selectByIdResultMap">
+        <!-- #{id}代表动态传入的参数,并且进行赋值 -->
+        SELECT *
+        FROM customer
+        INNER JOIN `order` ON `order`.customer_id = customer.customer_id
+        WHERE order.order_id = #{orderId}
+    </select>
+    <select id="selectAll" resultMap="selectByIdResultMap">
+        SELECT *
+        FROM customer
+        INNER JOIN `order` ON `order`.customer_id = customer.customer_id
+    </select>
+
+    <select id="selectAllByStatus" resultType="org.example.pojo.Order">
+        SELECT * FROM `order` WHERE `order_status` like concat("%",#{keyWord},"%")
+    </select>
+    <!--姓名模糊查询-->
+
+    <insert id="insertOrder" >
+        insert into `order`(order_id,order_status,order_price,order_date,customer_id,order_desc)
+        values(#{orderId},#{orderStatus},#{orderPrice},#{orderDate},#{customerId},#{orderDesc})
+    </insert>
+
+    <delete id="delOrder">
+        delete from `order` where order_id = #{orderId}
+    </delete>
+
+    <update id="updateOrder">
+        update `order`
+        set order_status = #{orderStatus},order_price = #{orderPrice},order_date=#{orderDate},customer_id=#{customerId},order_desc=#{orderDesc}
+        where order_id = #{orderId}
+    </update>
+
+</mapper>

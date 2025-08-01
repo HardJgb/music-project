@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace等于mapper接口类的全限定名 -->
+<mapper namespace="org.example.mapper.CustomerMapper">
+    <resultMap id="selectAllResultMap" type="org.example.pojo.Customer">
+        <id column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="customer_phone" property="customerPhone"/>
+        <result column="customer_address" property="customerAddress"/>
+        <result column="customer_contact" property="customerContact"/>
+        <result column="customer_other" property="customerOther"/>
+
+
+        <collection property="orderList" ofType="org.example.pojo.Order">
+            <id column="order_id" property="orderId"/>
+            <result column="order_status" property="orderStatus"/>
+            <result column="order_price" property="orderPrice"/>
+            <result column="order_date" property="orderDate"/>
+            <result column="order_desc" property="orderDesc"/>
+            <result column="customer_id" property="customerId"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectAll" resultMap="selectAllResultMap">
+        SELECT * FROM customer INNER JOIN `order`
+        ON customer.customer_id=`order`.customer_id
+    </select>
+
+    <select id="selectById" resultMap="selectAllResultMap">
+        SELECT * FROM customer INNER JOIN `order`
+        ON customer.customer_id=`order`.customer_id
+        where customer.customer_id =#{customerId}
+    </select>
+  <!--姓名模糊查询-->
+    <select id="selectByName" resultType="org.example.pojo.Customer">
+        SELECT * FROM customer
+        where customer.customer_name like concat("%",#{keyWord},"%")
+    </select>
+<!--    <select id="selectByName" resultMap="selectAllResultMap">-->
+<!--        SELECT * FROM customer INNER JOIN `order`-->
+<!--        ON customer.customer_id=`order`.customer_id-->
+<!--        where customer.customer_name like concat("%",#{keyWord},"%")-->
+<!--    </select>-->
+
+    <insert id="insertCustomer" >
+        insert into customer(customer_name,customer_phone,customer_address,customer_contact,customer_other)
+        values(#{customerName},#{customerPhone},#{customerAddress},#{customerContact},#{customerOther})
+    </insert>
+
+    <delete id="delCustomer">
+        delete from customer where customer_id = #{customerId}
+    </delete>
+
+    <update id="updateCustomer">
+        update customer
+        set customer_name = #{customerName} ,customer_phone = #{customerPhone},customer_address = #{customerAddress},customer_contact = #{customerContact},customer_other = #{customerOther}
+        where customer_id = #{customerId}
+    </update>
+</mapper>

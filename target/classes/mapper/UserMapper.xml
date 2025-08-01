@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace等于mapper接口类的全限定名(带包名的路径) -->
+<mapper namespace="org.example.mapper.UserMapper">
+    <!--
+        sql代码书写位置
+        - <select  查询标签
+            - id  mapper接口的方法名称
+            - resultType  返回值类型（查询要写）
+        - <insert  插入标签
+            - id  mapper接口的方法名称
+            - resultType  返回值类型（省略不写）返回值类型是集合=集合泛型的类型
+        - <update  更新标签
+        - <delete  删除标签
+    -->
+    <select id="selectById" resultType="org.example.pojo.User">
+        <!-- #{id}代表动态传入的参数,并且进行赋值 -->
+        select * from user where uid = #{id}
+    </select>
+    <select id="selectByName" resultType="org.example.pojo.User">
+        <!-- #{id}代表动态传入的参数,并且进行赋值 -->
+        select * from user where user_name = #{name}
+
+    </select>
+<!--    // 插入员工信息
+    int insertUser(User user);-->
+    <!--
+         useGeneratedKeys 生成主键
+         keyProperty 生成主键映射给实体类的属性
+
+    -->
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="uid">
+        insert into user(user_name,user_pwd) values(#{userName},#{userPwd})
+    </insert>
+
+    <!--  // 根据用户id修改用户姓名
+    int updateName(@Param("uid") int id,@Param("username") String name);  -->
+    <update id="updateUser">
+        update user
+        <set>
+            <if test="userName != null">user_name=#{userName},</if>
+            <if test="userPwd != null">user_pwd=#{userPwd},</if>
+            <if test="avatar != null">avatar=#{avatar},</if>
+            <if test="status != null">status=#{status},</if>
+        </set>
+        where uid=#{uid}
+    </update>
+    <!--
+        mapper接口传参的几种方式：
+            - 单个简单类型参数
+                sql直接接收（参数名称不一致也行）
+            - 实体类 类型参数
+                sql接收 直接使用类的属性名即可（mybatis框架会使用getter方法将该属性值从类中获取）
+            - 多个简单类参数
+                mapper接口使用@Param注解给参数定义别名，sql使用别名接收（不起别名找不到该参数）
+    -->
+   <delete id="delUser">
+       delete from user where uid = #{id}
+   </delete>
+
+    <select id="selectAll" resultType="org.example.pojo.User">
+        select * from user
+    </select>
+
+    <!-- 分页查询用户列表 -->
+    <select id="getUserList" resultType="org.example.pojo.User">
+        select * from user
+        <where>
+            <if test="query != null and query != ''">
+                user_name like CONCAT('%', #{query}, '%')
+            </if>
+        </where>
+        order by uid desc
+        limit #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 获取符合条件的用户总数 -->
+    <select id="getUserCount" resultType="java.lang.Integer">
+        select count(*) from user
+        <where>
+            <if test="query != null and query != ''">
+                user_name like CONCAT('%', #{query}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

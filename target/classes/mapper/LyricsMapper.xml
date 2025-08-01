@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.LyricsMapper">
+    <resultMap id="BaseResultMap" type="org.example.pojo.SongLyrics">
+        <id column="id" property="id"/>
+        <result column="song_id" property="songId"/>
+        <result column="content" property="content"/>
+        <result column="format" property="format"/>
+        <result column="source" property="source"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 根据歌曲ID查询歌词 -->
+    <select id="findBySongId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT * FROM songs_lyrics WHERE song_id = #{songId}
+    </select>
+    
+    <!-- 插入歌词 -->
+    <insert id="insert" parameterType="org.example.pojo.SongLyrics" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO songs_lyrics (song_id, content, format, source)
+        VALUES (#{songId}, #{content}, #{format}, #{source})
+    </insert>
+    
+    <!-- 更新歌词 -->
+    <update id="update" parameterType="org.example.pojo.SongLyrics">
+        UPDATE songs_lyrics 
+        SET content = #{content},
+            format = #{format},
+            source = #{source},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE song_id = #{songId}
+    </update>
+    
+    <!-- 根据歌曲ID删除歌词 -->
+    <delete id="deleteBySongId" parameterType="java.lang.Integer">
+        DELETE FROM songs_lyrics WHERE song_id = #{songId}
+    </delete>
+</mapper> 

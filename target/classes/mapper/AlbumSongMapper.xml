@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.AlbumSongMapper">
+    <resultMap id="AlbumSongResultMap" type="org.example.pojo.AlbumSong">
+        <id column="id" property="id"/>
+        <result column="album_id" property="albumId"/>
+        <result column="song_id" property="songId"/>
+        <result column="track_number" property="trackNumber"/>
+    </resultMap>
+    
+    <resultMap id="SongResultMap" type="org.example.pojo.Song">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="artist" property="artist"/>
+        <result column="duration" property="duration"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="cover_img" property="coverImg"/>
+        <result column="create_time" property="createTime"/>
+        <result column="lyric_url" property="lyricUrl"/>
+        <result column="play_count" property="playCount"/>
+        <result column="track_number" property="trackNumber"/>
+    </resultMap>
+    
+    <insert id="insert" parameterType="org.example.pojo.AlbumSong" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO album_song (album_id, song_id, track_number)
+        VALUES (#{albumId}, #{songId}, #{trackNumber})
+    </insert>
+    
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO album_song (album_id, song_id, track_number)
+        VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (#{item.albumId}, #{item.songId}, #{item.trackNumber})
+        </foreach>
+    </insert>
+    
+    <delete id="remove">
+        DELETE FROM album_song WHERE album_id = #{albumId} AND song_id = #{songId}
+    </delete>
+    
+    <select id="findSongsByAlbumId" resultMap="SongResultMap" parameterType="java.lang.Integer">
+        SELECT s.*, als.track_number 
+        FROM song s
+        JOIN album_song als ON s.id = als.song_id
+        WHERE als.album_id = #{albumId}
+        ORDER BY als.track_number ASC
+    </select>
+    
+    <!-- 统一的updateTrackNumber方法，支持两种参数方式 -->
+    <update id="updateTrackNumber">
+        UPDATE album_song 
+        SET track_number = #{trackNumber}
+        WHERE album_id = #{albumId} AND song_id = #{songId}
+    </update>
+    
+    <delete id="removeAllSongs" parameterType="java.lang.Integer">
+        DELETE FROM album_song WHERE album_id = #{albumId}
+    </delete>
+    
+    <select id="existsInAlbum" resultType="java.lang.Boolean">
+        SELECT COUNT(*) > 0 FROM album_song 
+        WHERE album_id = #{albumId} AND song_id = #{songId}
+    </select>
+    
+    <!-- 添加歌曲到专辑 -->
+    <insert id="addSongToAlbum">
+        INSERT INTO album_song (album_id, song_id, track_number)
+        VALUES (#{albumId}, #{songId}, #{trackNumber})
+    </insert>
+    
+    <!-- 从专辑中移除歌曲 -->
+    <delete id="removeSongFromAlbum">
+        DELETE FROM album_song 
+        WHERE album_id = #{albumId} AND song_id = #{songId}
+    </delete>
+    
+    <!-- 获取歌曲在专辑中的曲目编号 -->
+    <select id="getTrackNumber" resultType="java.lang.Integer">
+        SELECT track_number 
+        FROM album_song 
+        WHERE album_id = #{albumId} AND song_id = #{songId}
+    </select>
+</mapper> 

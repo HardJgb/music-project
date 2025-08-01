@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.SongMapper">
+    <resultMap id="BaseResultMap" type="org.example.pojo.Song">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="artist" property="artist"/>
+        <result column="duration" property="duration"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="cover_img" property="coverImg"/>
+        <result column="create_time" property="createTime"/>
+        <result column="lyric_url" property="lyricUrl"/>
+        <result column="play_count" property="playCount"/>
+    </resultMap>
+    
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM song
+    </select>
+    
+    <select id="findAllOrderByPlayCount" resultMap="BaseResultMap">
+        SELECT * FROM song ORDER BY play_count DESC
+    </select>
+    
+    <select id="findAllOrderByCreateTime" resultMap="BaseResultMap">
+        SELECT * FROM song ORDER BY create_time DESC
+    </select>
+    
+    <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT * FROM song WHERE id = #{id}
+    </select>
+    
+    <select id="findByPlaylistId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT s.* FROM song s
+        JOIN playlist_song ps ON s.id = ps.song_id
+        WHERE ps.playlist_id = #{playlistId}
+    </select>
+    
+    <insert id="insertSong" parameterType="org.example.pojo.Song" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO song (name, artist, duration, file_url, cover_img, lyric_url, play_count)
+        VALUES (#{name}, #{artist}, #{duration}, #{fileUrl}, #{coverImg}, #{lyricUrl}, #{playCount})
+    </insert>
+    
+    <update id="updateSong" parameterType="org.example.pojo.Song">
+        UPDATE song 
+        SET name = #{name}, 
+            artist = #{artist}, 
+            duration = #{duration}, 
+            file_url = #{fileUrl}, 
+            cover_img = #{coverImg},
+            lyric_url = #{lyricUrl},
+            play_count = #{playCount},
+            create_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    
+    <update id="incrementPlayCount" parameterType="java.lang.Integer">
+        UPDATE song 
+        SET play_count = COALESCE(play_count, 0) + 1
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteSong" parameterType="java.lang.Integer">
+        DELETE FROM song WHERE id = #{id}
+    </delete>
+    
+    <!-- 获取所有不重复的歌手 -->
+    <select id="findAllArtists" resultType="java.lang.String">
+        SELECT DISTINCT artist FROM song ORDER BY artist
+    </select>
+    
+    <!-- 根据歌手名称查询歌曲 -->
+    <select id="findByArtist" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT * FROM song WHERE artist = #{artist}
+    </select>
+    
+    <!-- 删除收藏表中与歌曲关联的数据 -->
+    <delete id="deleteFavoriteBySongId" parameterType="java.lang.Integer">
+        DELETE FROM favorites WHERE song_id = #{songId}
+    </delete>
+    
+    <!-- 删除最近播放记录中与歌曲关联的数据 -->
+    <delete id="deleteRecentPlayBySongId" parameterType="java.lang.Integer">
+        DELETE FROM recent_play WHERE song_id = #{songId}
+    </delete>
+    
+    <!-- 删除专辑歌曲关联表中与歌曲关联的数据 -->
+    <delete id="deleteAlbumSongBySongId" parameterType="java.lang.Integer">
+        DELETE FROM album_song WHERE song_id = #{songId}
+    </delete>
+    
+    <!-- 删除评论表中与歌曲关联的数据 -->
+    <delete id="deleteCommentsBySongId" parameterType="java.lang.Integer">
+        DELETE FROM comments WHERE song_id = #{songId}
+    </delete>
+</mapper> 
