@@ -84,7 +84,6 @@
 
 <video width="800" controls>
   <source src="https://web-jgb.oss-cn-beijing.aliyuncs.com/20250801-0638-20.8796798.mp4" type="video/mp4">
-  您的浏览器不支持video标签。
 </video>
 
 ## 🚀 快速开始
