@@ -1,0 +1,52 @@
+# server配置
+server:
+  port: 8085
+  servlet:
+    context-path: /
+
+# 连接池配置
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB #最大文件大小设置为10MB
+      max-request-size: 10MB #最大请求大小设置为10MB
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      url: jdbc:mysql://localhost:3306/music_database
+      username: root
+      password: 123456
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 添加CORS配置
+  mvc:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+#mybatis配置
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml  #配置resources/mapper/所有的mapperxml
+  configuration: # setting配置
+    # 将数据库表中的xx_xx列名自动映射到实体类中的xxXx属性名
+    # 相当于之前mybatis-config.xml里的 <setting name="mapUnderscoreToCamelCase" value="false"/>
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#pagehelper分页配置
+pagehelper:
+  helperDialect: mysql    # 配置数据库语言
+  reasonable: true   # 设置是否支持接口参数中的 pageNum 和 pageSize 为 0。当该参数设置为 true 时，如果 pageNum 为 0 或 pageSize 为 0，PageHelper 会查询所有记录，而不是返回一个空的结果。
+#jwt配置   （application.yml）
+jwt:
+    token:
+      tokenExpiration: 240 #有效时间,单位分钟
+      tokenSignKey: 123456  #当前程序签名秘钥 自定义
+#图片存储配置
+imageUpload:
+  basePath: C:\Users\32143\Desktop\接单写的\新建文件夹\全栈音乐播放平台\Music-project\src\main\resources\static\image\
+  accessPath: http://localhost:8085/public/image/
+

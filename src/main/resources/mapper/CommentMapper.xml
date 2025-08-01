@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.CommentMapper">
+    
+    <resultMap id="CommentResultMap" type="org.example.pojo.Comment">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="song_id" property="songId" />
+        <result column="content" property="content" />
+        <result column="parent_id" property="parentId" />
+        <result column="reply_to_id" property="replyToId" />
+        <result column="like_count" property="likeCount" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="username" property="username" />
+        <result column="user_avatar" property="userAvatar" />
+        <result column="reply_to_username" property="replyToUsername" />
+    </resultMap>
+    
+    <!-- 获取歌曲评论列表（父评论） -->
+    <select id="findBySongId" resultMap="CommentResultMap">
+        SELECT c.*, u.user_name as username, u.avatar as user_avatar
+        FROM comments c
+        JOIN user u ON c.user_id = u.uid
+        WHERE c.song_id = #{songId} AND c.parent_id IS NULL
+        ORDER BY 
+        <if test="sortByLikes">
+            c.like_count DESC, 
+        </if>
+        c.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 直接获取歌曲评论列表（不关联用户表） -->
+    <select id="findBySongIdDirect" resultMap="CommentResultMap">
+        SELECT *
+        FROM comments
+        WHERE song_id = #{songId} AND parent_id IS NULL
+        ORDER BY 
+        <if test="sortByLikes">
+            like_count DESC, 
+        </if>
+        create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 获取评论总数（父评论） -->
+    <select id="countBySongId" resultType="int">
+        SELECT COUNT(*) 
+        FROM comments 
+        WHERE song_id = #{songId} AND parent_id IS NULL
+    </select>
+    
+    <!-- 获取评论回复列表 -->
+    <select id="findRepliesByParentId" resultMap="CommentResultMap">
+        SELECT c.*, u.user_name as username, u.avatar as user_avatar,
+               (SELECT user_name FROM user WHERE uid = c.reply_to_id) as reply_to_username
+        FROM comments c
+        JOIN user u ON c.user_id = u.uid
+        WHERE c.parent_id = #{parentId}
+        ORDER BY c.create_time ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 获取回复总数 -->
+    <select id="countRepliesByParentId" resultType="int">
+        SELECT COUNT(*) 
+        FROM comments 
+        WHERE parent_id = #{parentId}
+    </select>
+    
+    <!-- 新增评论 -->
+    <insert id="insert" parameterType="org.example.pojo.Comment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comments (
+            user_id, song_id, content, parent_id, reply_to_id, like_count, create_time
+        ) VALUES (
+            #{userId}, #{songId}, #{content}, #{parentId}, #{replyToId}, 0, NOW()
+        )
+    </insert>
+    
+    <!-- 根据ID获取评论 -->
+    <select id="findById" resultMap="CommentResultMap">
+        SELECT * FROM comments WHERE id = #{id}
+    </select>
+    
+    <!-- 更新评论点赞数 -->
+    <update id="updateLikeCount">
+        UPDATE comments
+        SET like_count = like_count + #{increment}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 获取评论详细信息（包括用户信息） -->
+    <select id="findCommentWithUserInfo" resultMap="CommentResultMap">
+        SELECT c.*, u.user_name as username, u.avatar as user_avatar,
+               (SELECT user_name FROM user WHERE uid = c.reply_to_id) as reply_to_username
+        FROM comments c
+        JOIN user u ON c.user_id = u.uid
+        WHERE c.id = #{id}
+    </select>
+    
+    <!-- 获取用户详细信息 -->
+    <select id="findUserInfoById" resultMap="CommentResultMap">
+        SELECT uid as id, user_name as username, avatar as user_avatar
+        FROM user
+        WHERE uid = #{id}
+    </select>
+    
+    <!-- 根据ID删除评论 -->
+    <delete id="deleteById">
+        DELETE FROM comments WHERE id = #{id}
+    </delete>
+    
+    <!-- 获取某个评论的所有回复 -->
+    <select id="findRepliesByCommentId" resultMap="CommentResultMap">
+        SELECT c.*, u.user_name as username, u.avatar as user_avatar,
+               (SELECT user_name FROM user WHERE uid = c.reply_to_id) as reply_to_username
+        FROM comments c
+        JOIN user u ON c.user_id = u.uid
+        WHERE c.parent_id = #{commentId}
+        ORDER BY c.create_time ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 减少父评论的回复计数 -->
+    <update id="decrementReplyCount">
+        UPDATE comments
+        SET reply_count = CASE WHEN reply_count > 0 THEN reply_count - 1 ELSE 0 END
+        WHERE id = #{parentId}
+    </update>
+</mapper> 

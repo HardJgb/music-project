@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.ArtistMapper">
+    <resultMap id="BaseResultMap" type="org.example.pojo.Artist">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="description" property="description"/>
+    </resultMap>
+    
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM artist ORDER BY name
+    </select>
+    
+    <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT * FROM artist WHERE id = #{id}
+    </select>
+    
+    <select id="findByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT * FROM artist WHERE name = #{name}
+    </select>
+    
+    <insert id="insert" parameterType="org.example.pojo.Artist" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO artist (name, avatar_url, description)
+        VALUES (#{name}, #{avatarUrl}, #{description})
+    </insert>
+    
+    <update id="update" parameterType="org.example.pojo.Artist">
+        UPDATE artist 
+        SET name = #{name},
+            avatar_url = #{avatarUrl},
+            description = #{description}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM artist WHERE id = #{id}
+    </delete>
+    
+    <!-- 导入现有歌手数据 -->
+    <insert id="importExistingArtists">
+        INSERT INTO artist (name)
+        SELECT DISTINCT artist FROM song
+        WHERE artist NOT IN (SELECT name FROM artist)
+    </insert>
+</mapper> 

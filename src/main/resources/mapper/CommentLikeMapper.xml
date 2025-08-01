@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.CommentLikeMapper">
+    
+    <resultMap id="CommentLikeResultMap" type="org.example.pojo.CommentLike">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="comment_id" property="commentId" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+    
+    <!-- 添加点赞记录 -->
+    <insert id="insert" parameterType="org.example.pojo.CommentLike" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comment_likes (user_id, comment_id, create_time) 
+        VALUES (#{userId}, #{commentId}, NOW())
+        ON DUPLICATE KEY UPDATE create_time = NOW()
+    </insert>
+    
+    <!-- 删除点赞记录 -->
+    <delete id="deleteByUserIdAndCommentId">
+        DELETE FROM comment_likes 
+        WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </delete>
+    
+    <!-- 查询用户是否点赞过该评论 -->
+    <select id="findByUserIdAndCommentId" resultMap="CommentLikeResultMap">
+        SELECT * FROM comment_likes 
+        WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </select>
+    
+    <!-- 查询用户点赞的所有评论ID -->
+    <select id="findCommentIdsByUserId" resultType="java.lang.Integer">
+        SELECT comment_id FROM comment_likes 
+        WHERE user_id = #{userId}
+        <if test="commentIds != null and commentIds.size() > 0">
+            AND comment_id IN
+            <foreach collection="commentIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+    
+    <!-- 删除评论的所有点赞记录 -->
+    <delete id="deleteByCommentId">
+        DELETE FROM comment_likes 
+        WHERE comment_id = #{commentId}
+    </delete>
+</mapper> 

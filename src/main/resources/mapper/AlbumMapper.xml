@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.AlbumMapper">
+    <resultMap id="BaseResultMap" type="org.example.pojo.Album">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="artist" property="artist"/>
+        <result column="description" property="description"/>
+        <result column="cover_img" property="coverImg"/>
+        <result column="release_date" property="releaseDate"/>
+        <result column="create_time" property="createTime"/>
+        <result column="song_count" property="songCount"/>
+    </resultMap>
+    
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT a.*, COUNT(als.song_id) as song_count 
+        FROM album a
+        LEFT JOIN album_song als ON a.id = als.album_id
+        GROUP BY a.id
+        ORDER BY a.release_date DESC
+    </select>
+    
+    <select id="findById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT a.*, COUNT(als.song_id) as song_count 
+        FROM album a
+        LEFT JOIN album_song als ON a.id = als.album_id
+        WHERE a.id = #{id}
+        GROUP BY a.id
+    </select>
+    
+    <select id="findByArtist" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT a.*, COUNT(als.song_id) as song_count 
+        FROM album a
+        LEFT JOIN album_song als ON a.id = als.album_id
+        WHERE a.artist = #{artist}
+        GROUP BY a.id
+        ORDER BY a.release_date DESC
+    </select>
+    
+    <select id="searchByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT a.*, COUNT(als.song_id) as song_count 
+        FROM album a
+        LEFT JOIN album_song als ON a.id = als.album_id
+        WHERE a.name LIKE CONCAT('%', #{name}, '%')
+        GROUP BY a.id
+    </select>
+    
+    <select id="findLatest" resultMap="BaseResultMap">
+        SELECT a.*, COUNT(als.song_id) as song_count 
+        FROM album a
+        LEFT JOIN album_song als ON a.id = als.album_id
+        GROUP BY a.id
+        ORDER BY a.release_date DESC
+        LIMIT 10
+    </select>
+    
+    <insert id="insert" parameterType="org.example.pojo.Album" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO album (name, artist, description, cover_img, release_date, create_time)
+        VALUES (#{name}, #{artist}, #{description}, #{coverImg}, #{releaseDate}, NOW())
+    </insert>
+    
+    <update id="update" parameterType="org.example.pojo.Album">
+        UPDATE album 
+        SET name = #{name},
+            artist = #{artist},
+            description = #{description},
+            cover_img = #{coverImg},
+            release_date = #{releaseDate}
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM album WHERE id = #{id}
+    </delete>
+    
+    <select id="getSongCount" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT COUNT(*) FROM album_song WHERE album_id = #{albumId}
+    </select>
+    
+    <update id="updateCover">
+        UPDATE album 
+        SET cover_img = #{coverUrl}
+        WHERE id = #{id}
+    </update>
+    
+    <select id="getAlbumSongs" resultType="org.example.pojo.Song" parameterType="java.lang.Integer">
+        SELECT s.* 
+        FROM song s
+        JOIN album_song als ON s.id = als.song_id
+        WHERE als.album_id = #{albumId}
+        ORDER BY als.track_number ASC
+    </select>
+    
+    <select id="checkSongInAlbum" resultType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM album_song 
+        WHERE album_id = #{albumId} AND song_id = #{songId}
+    </select>
+    
+    <select id="getMaxTrackNumber" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT MAX(track_number) 
+        FROM album_song 
+        WHERE album_id = #{albumId}
+    </select>
+    
+    <update id="updateSongCount">
+        UPDATE album a
+        SET song_count = (
+            SELECT COUNT(*) FROM album_song WHERE album_id = #{id}
+        )
+        WHERE a.id = #{id}
+    </update>
+    
+    <insert id="importExistingAlbums">
+        INSERT INTO album (name, artist, release_date, create_time)
+        SELECT DISTINCT CONCAT(artist, ' - 精选集'), artist, NOW(), NOW() FROM song
+        WHERE artist NOT IN (
+            SELECT artist FROM album
+        )
+    </insert>
+</mapper> 
